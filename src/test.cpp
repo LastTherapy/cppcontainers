@@ -243,6 +243,66 @@ TEST(ListTest, MergesLists) {
     }
 }
 
+TEST(ListTest, SpliceToBeginning) {
+    list<int> myList = {1, 2, 3};
+    list<int> otherList = {4, 5, 6};
+    
+    myList.splice(myList.begin(), otherList);
+    
+    ASSERT_EQ(myList.size(), 6);
+    ASSERT_TRUE(otherList.empty());
+    ASSERT_EQ(myList.front(), 4); // Проверяем, что первый элемент - из otherList.
+    
+    // Проверяем порядок элементов.
+    auto it = myList.begin();
+    ASSERT_EQ(*it++, 4);
+    ASSERT_EQ(*it++, 5);
+    ASSERT_EQ(*it++, 6);
+    ASSERT_EQ(*it++, 1);
+    ASSERT_EQ(*it++, 2);
+    ASSERT_EQ(*it, 3);
+}
+
+// Тестирование Splice в середину списка
+TEST(ListTest, SpliceToMiddle) {
+    list<int> myList = {1, 2, 3};
+    list<int> otherList = {4, 5, 6};
+
+    auto it = myList.begin();
+    ++it;
+    ++it; // Перемещаем итератор на позицию перед 3
+    myList.splice(it, otherList);
+
+    ASSERT_EQ(myList.size(), 6);
+    ASSERT_TRUE(otherList.empty());
+    it = myList.begin();
+    ASSERT_EQ(*it++, 1);
+    ASSERT_EQ(*it++, 2);
+    ASSERT_EQ(*it++, 4);
+    ASSERT_EQ(*it++, 5);
+    ASSERT_EQ(*it++, 6);
+    ASSERT_EQ(*it, 3);
+}
+
+// Тестирование Splice в конец списка
+TEST(ListTest, SpliceToEnd) {
+    list<int> myList = {1, 2, 3};
+    list<int> otherList = {4, 5, 6};
+
+    myList.splice(myList.end(), otherList);
+
+    ASSERT_EQ(myList.size(), 6);
+    ASSERT_TRUE(otherList.empty());
+    auto it = myList.begin();
+    ASSERT_EQ(*it++, 1);
+    ASSERT_EQ(*it++, 2);
+    ASSERT_EQ(*it++, 3);
+    ASSERT_EQ(*it++, 4);
+    ASSERT_EQ(*it++, 5);
+    ASSERT_EQ(*it, 6);
+}
+
+
 // Тест на переворот списка
 TEST(ListTest, ReversesList) {
     list<int> my_list{1, 2, 3};
@@ -254,6 +314,8 @@ TEST(ListTest, ReversesList) {
         EXPECT_EQ(expected[i++], elem);
     }
 }
+
+
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);

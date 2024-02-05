@@ -111,6 +111,7 @@ public:
                                         const_reference value);
     friend void list<T>::erase(ListIterator pos);
     friend void list<T>::splice(const ListIterator pos, list &other);
+    friend void list<T>::reverse();
 
   private:
     node *current;
@@ -147,7 +148,7 @@ public:
     tail = nullptr;
     count = 0;
   }
- 
+
   iterator insert(iterator pos, const_reference value) {
     if (pos == begin()) {
       push_front(value); // +count in push front
@@ -252,72 +253,63 @@ public:
     std::swap(count, other.count);
   }
 
-
   void merge(list &other) {
     iterator it = this->begin();
     while (!other.empty()) {
       T value = std::move(other.front());
-       while (it != this->end() && *it < value) { ++it; }
+      while (it != this->end() && *it < value) {
+        ++it;
+      }
       this->insert(it, std::move(value));
       other.pop_front();
     }
   }
 
   void splice(const_iterator pos, list &other) {
-    if (other.empty || this == other) return;
+    if (other.empty() || this == &other)
+      return;
 
-     if (pos == begin()) {
-          other.tail->next = head;
-          head->prev = other.tail;         
-          head = other.head;      
-      }
-      else if (pos == end()) {
-          tail->next = other.head;
-          other.head->prev = tail;
-          tail = other.tail;
-      }
-      else {
-          pos.current->prev->next = other.head;
-          other.head->prev = pos.current->prev;
+    if (pos == begin()) {
+      other.tail->next = head;
+      head->prev = other.tail;
+      head = other.head;
+    } else if (pos == end()) {
+      tail->next = other.head;
+      other.head->prev = tail;
+      tail = other.tail;
+    } else {
+      pos.current->prev->next = other.head;
+      other.head->prev = pos.current->prev;
 
-          other.tail->next = pos.current;
-          pos.current->prev = other.tail;
-      }
-
-       count += other.count;
-             // other to null
-          other.head = nullptr;
-          other.tail = nullptr;
-          other.count = 0;  
+      other.tail->next = pos.current;
+      pos.current->prev = other.tail;
+    }
+    count += other.count;
+    // other to null
+    other.head = nullptr;
+    other.tail = nullptr;
+    other.count = 0;
   }
-  void reverse() {}
-  void unique() {}
-  void sort() {}
+  void reverse() {
+    if (this->count <= 1) return;
+      for (iterator it_left = this->begin(), it_right = --this->end(); it_left != it_right &&it_left.current != it_right.current->next; ++it_left,  --it_right) {
+          std::swap(it_left.current->data, it_right.current->data);
+      }
+  }
+  // n^2
+  void unique() {
+    size_type start = 0;
+      for (; start < count; start++) {
+        
+      }
+  }
+  void sort() {
+
+  }
 
   node *getHead() { return head; }
 
 private:
-  // void swap(node* a, node *b) {
-  //   if (a == b) return;
-  //   else if (a->next == b) {
-
-  //   }
-
-  //   std::swap(a->next, b->next);
-  //   std::swap(a->prev, b->prev);
-
-  //   if (a->next)  a->next->prev = a;
-  //   if (b->next) b->next->prev = b;
-  //   if (a->prev) a->prev->next = a;
-  //   if (b->prev) b->prev.next = b;
-
-  //   if (head == a) head = b;
-  //   if (head == b) head = a;
-  //   if (tail == a) tail = b;
-  //   if (tail == b) tail = a;
-
-  // }
-
   node *head;
   node *tail;
 
