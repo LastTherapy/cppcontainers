@@ -1,5 +1,6 @@
 #ifndef LIST_H
 #define LIST_H
+#include <iostream>
 #include <iterator>
 
 template <typename T> class list {
@@ -56,7 +57,11 @@ public:
   }
 
   // copy constructor
-  list(const list &l) {}
+  list(const list &l) {
+    for (element : this) {
+      element
+    }
+  }
   // move constructor
   list(list &&l) {}
 
@@ -67,7 +72,26 @@ public:
 
   class ListIterator {
   public:
-    ListIterator(node *ptr, node *tl = nullptr) : current(ptr), tail(tl){};
+    ListIterator(node *ptr, node *tl = nullptr) : current(ptr), tail(tl) {}
+
+    // сначала думал что нужно переопределить оператор копирования, но потом осталось, что не нужно
+
+    // ListIterator(const ListIterator &other) {
+    //   current = other.current;
+    //   tail = other.tail;
+    // }
+
+    // ListIterator(ListIterator &&i) : current(i.current), tail(i.tail) {}
+
+    // ~ListIterator() {}
+
+    // ListIterator &operator=(const ListIterator &other) {
+    //   if (this != &other) {
+    //     current = other.current;
+    //     tail = other.tail;
+    //   }
+    //   return *this;
+    // }
 
     reference operator*() const { return current->data; }
     pointer operator->() { return &(current->data); }
@@ -291,28 +315,92 @@ public:
     other.count = 0;
   }
   void reverse() {
-    if (this->count <= 1) return;
-      for (iterator it_left = this->begin(), it_right = --this->end(); it_left != it_right &&it_left.current != it_right.current->next; ++it_left,  --it_right) {
-          std::swap(it_left.current->data, it_right.current->data);
-      }
+    if (this->count <= 1)
+      return;
+    for (iterator it_left = this->begin(), it_right = --this->end();
+         it_left != it_right && it_left.current != it_right.current->next;
+         ++it_left, --it_right) {
+      std::swap(it_left.current->data, it_right.current->data);
+    }
   }
-  // n^2
+
   void unique() {
-    size_type start = 0;
-      for (; start < count; start++) {
-        
+    if (empty() || head == tail)
+      return;
+    auto current = begin();
+
+    while (current != end()) {
+      auto next = current;
+      ++next;
+
+      while (next != end()) {
+        if (*current == *next) {
+          auto temp = next;
+          ++next;
+          erase(temp);
+        } else {
+          break;
+        }
       }
+      if (next != end()) {
+        current = next;
+      } else {
+        break;
+      }
+    }
   }
+
+  // just buble for example ((
   void sort() {
+    if (empty() || head == tail)
+      return;
 
+    auto start = begin();
+    auto end_marker = end();
+    while (start != end_marker)
+    {
+
+    auto max = start;
+    auto v = max;
+    ++v;
+    while (v != end_marker) {
+      // std::cout << "v is " << *v << " , max is " << *max << std::endl;
+      if (*max > *v) {
+        // std::cout << "swaping " << *max << " wtidh " << *v << std::endl;
+        std::swap(*v, *max);
+        max = v;
+
+      } else {        
+        max = v;
+        // std::cout << "new max is " << *max;
+      }
+      ++v;
+    }
+    --end_marker;
+    }
   }
+  // bool swapped;
+  // auto end_marker = end();
+  // do {
+  //     swapped = false;
+  //     auto current = begin();
+  //     auto next = current;
+  //     ++next;
 
-  node *getHead() { return head; }
+  //     while (next != end_marker) {
+  //         if (*current > *next) {
+  //             std::swap(*current, *next);
+  //             swapped = true;
+  //         }
+  //         ++current;
+  //         ++next;
+  //     }
+  //     end_marker = current; // Уменьшаем диапазон сортировки
+  // } while (swapped);
 
 private:
   node *head;
   node *tail;
-
   size_t count;
 };
 #endif
