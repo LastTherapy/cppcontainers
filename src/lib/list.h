@@ -110,7 +110,7 @@ public:
     friend ListIterator list<T>::insert(ListIterator pos,
                                         const_reference value);
     friend void list<T>::erase(ListIterator pos);
-    friend void list<T>::splice(const_iterator pos, list &other)
+    friend void list<T>::splice(const ListIterator pos, list &other);
 
   private:
     node *current;
@@ -147,6 +147,7 @@ public:
     tail = nullptr;
     count = 0;
   }
+ 
   iterator insert(iterator pos, const_reference value) {
     if (pos == begin()) {
       push_front(value); // +count in push front
@@ -263,13 +264,31 @@ public:
   }
 
   void splice(const_iterator pos, list &other) {
+    if (other.empty || this == other) return;
+
      if (pos == begin()) {
           other.tail->next = head;
-          head->prev = other.tail;
-          count += other.count;
-          head = other.head;
-          other = nullptr;    
+          head->prev = other.tail;         
+          head = other.head;      
       }
+      else if (pos == end()) {
+          tail->next = other.head;
+          other.head->prev = tail;
+          tail = other.tail;
+      }
+      else {
+          pos.current->prev->next = other.head;
+          other.head->prev = pos.current->prev;
+
+          other.tail->next = pos.current;
+          pos.current->prev = other.tail;
+      }
+
+       count += other.count;
+             // other to null
+          other.head = nullptr;
+          other.tail = nullptr;
+          other.count = 0;  
   }
   void reverse() {}
   void unique() {}
