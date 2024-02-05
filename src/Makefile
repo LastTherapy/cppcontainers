@@ -7,7 +7,7 @@ LDFLAGS := -lgtest
 
 
 all:
-	g++ lib/list.cpp
+	g++ main.cc
 	./a.out
 
 
@@ -22,7 +22,7 @@ all:
 #	ar rcs $(LIBNAME) $(OBJECTS)
 
 test: clean
-	g++  test.cpp $(FLAGS) $(LDFLAGS) -o test
+	g++  -g test.cpp $(FLAGS) $(LDFLAGS) -o  test
 	./test
 
 clean:
