@@ -2,9 +2,7 @@
 #define LIST_H
 #include <iterator>
 
-template <typename T>
-class list
-{
+template <typename T> class list {
 public:
   using value_type = T;
   using reference = T &;
@@ -13,13 +11,13 @@ public:
   using pointer = T *;
 
   // структура узла внутри класса
-  typedef struct node
-  {
+  typedef struct node {
     T data;
     node *next;
     node *prev;
     // Конструктор узла для удобства
-    node(const T &d, node *nx = nullptr, node *pw = nullptr) : data(d), next(nx), prev(pw) {}
+    node(const T &d, node *nx = nullptr, node *pw = nullptr)
+        : data(d), next(nx), prev(pw) {}
   } node;
 
 public:
@@ -27,14 +25,12 @@ public:
   list() : head(nullptr), tail(nullptr), count(0) {}
 
   // создаем список с n пустыми элементами
-  list(size_type n) : head(nullptr), tail(nullptr), count(0)
-  {
+  list(size_type n) : head(nullptr), tail(nullptr), count(0) {
     if (n == 0)
       return;
     head = new node(T());
     node *p = head;
-    for (size_type i = 1; i < n; i++)
-    {
+    for (size_type i = 1; i < n; i++) {
       p->next = new node(T());
       p->next->prev = p;
       p = p->next;
@@ -43,16 +39,14 @@ public:
     count = n;
   }
 
-  list(std::initializer_list<T> const &items)
-  {
+  list(std::initializer_list<T> const &items) {
     if (items.size() == 0)
       return;
 
     auto it = items.begin();
     head = new node(*it, nullptr);
     node *p = head;
-    for (++it; it != items.end(); ++it)
-    {
+    for (++it; it != items.end(); ++it) {
       p->next = new node(*it, nullptr);
       p->next->prev = p;
       p = p->next;
@@ -62,74 +56,61 @@ public:
   }
 
   // copy constructor
-  list(const list &l)
-  {
-  }
+  list(const list &l) {}
   // move constructor
-  list(list &&l)
-  {
-  }
+  list(list &&l) {}
 
   // destructor
-  ~list()
-  {
-  }
+  ~list() {}
 
   // --------I T E R A T O R------------------------------------------ //
 
-  class ListIterator
-  {
+  class ListIterator {
   public:
     ListIterator(node *ptr, node *tl = nullptr) : current(ptr), tail(tl){};
 
     reference operator*() const { return current->data; }
     pointer operator->() { return &(current->data); }
 
-    ListIterator &operator++()
-    {
+    ListIterator &operator++() {
       current = current->next;
       return (*this);
     }
 
-    ListIterator operator++(int)
-    {
+    ListIterator operator++(int) {
       ListIterator temp = *this;
       ++(*this);
       return temp;
     }
 
     //--it
-    ListIterator &operator--()
-    {
-      if (current == nullptr)
-      {
+    ListIterator &operator--() {
+      if (current == nullptr) {
         current = tail;
         tail = nullptr;
-      }
-      else
+      } else
         current = current->prev;
       return (*this);
     }
-    ListIterator operator--(int)
-    {
+    ListIterator operator--(int) {
       ListIterator temp = *this;
       --(*this);
       return temp;
     }
 
-    bool operator==(const ListIterator &other) const
-    {
+    bool operator==(const ListIterator &other) const {
       return current == other.current;
     }
-    bool operator!=(const ListIterator &other) const
-    {
+    bool operator!=(const ListIterator &other) const {
       return current != other.current;
     }
 
     node *getCurrent() { return current; }
 
-    friend ListIterator list<T>::insert(ListIterator pos, const_reference value);
+    friend ListIterator list<T>::insert(ListIterator pos,
+                                        const_reference value);
     friend void list<T>::erase(ListIterator pos);
+    friend void list<T>::splice(const_iterator pos, list &other)
 
   private:
     node *current;
@@ -155,11 +136,9 @@ public:
   size_type max_size() { return count; }
 
   // List Modifiers
-  void clear()
-  {
+  void clear() {
     node *current = head;
-    while (current != nullptr)
-    {
+    while (current != nullptr) {
       node *next = current->next;
       delete current;
       current = next;
@@ -168,20 +147,14 @@ public:
     tail = nullptr;
     count = 0;
   }
-  iterator insert(iterator pos, const_reference value)
-  {
-    if (pos == begin())
-    {
+  iterator insert(iterator pos, const_reference value) {
+    if (pos == begin()) {
       push_front(value); // +count in push front
       return begin();
-    }
-    else if (pos == end())
-    {
+    } else if (pos == end()) {
       push_back(value);
       return iterator(tail);
-    }
-    else
-    {
+    } else {
       node *new_node = new node(value, pos.current, pos.current->prev);
       pos.current->prev->next = new_node;
       pos.current->prev = new_node;
@@ -190,38 +163,26 @@ public:
     }
   }
 
-  void erase(iterator pos)
-  {
+  void erase(iterator pos) {
     node *temp = pos.current;
     if (!temp)
       return;
-    if (temp == head)
-    {
+    if (temp == head) {
       head = head->next;
-      if (head)
-      {
+      if (head) {
         head->prev = nullptr;
-      }
-      else
-      {
+      } else {
         tail = nullptr;
       }
-    }
-    else if (temp == tail)
-    {
+    } else if (temp == tail) {
       tail = temp->prev;
 
-      if (tail)
-      {
+      if (tail) {
         tail->next = nullptr;
-      }
-      else
-      {
+      } else {
         head = nullptr;
       }
-    }
-    else
-    {
+    } else {
       // !
       temp->prev->next = temp->next;
       temp->next->prev = temp->prev;
@@ -231,32 +192,24 @@ public:
     delete temp;
   }
 
-  void push_back(const_reference value)
-  {
+  void push_back(const_reference value) {
     // list is empty
-    if (head == nullptr)
-    {
+    if (head == nullptr) {
       head = new node(value);
       tail = head;
-    }
-    else
-    {
+    } else {
       tail->next = new node(value, nullptr, tail);
       tail = tail->next;
     }
     count++;
   }
 
-  void pop_back()
-  {
+  void pop_back() {
     if (tail == nullptr)
       return;
-    if (tail == head)
-    {
+    if (tail == head) {
       clear();
-    }
-    else
-    {
+    } else {
       node *temp = tail;
       tail = tail->prev;
       tail->next = nullptr;
@@ -265,16 +218,12 @@ public:
     }
   }
 
-  void push_front(const_reference value)
-  {
+  void push_front(const_reference value) {
     // list is empty
-    if (head == nullptr)
-    {
+    if (head == nullptr) {
       head = new node(value);
       tail = head;
-    }
-    else
-    {
+    } else {
       node *new_node = new node(value, head);
       head->prev = new_node;
       head = new_node;
@@ -282,16 +231,12 @@ public:
     count++;
   }
 
-  void pop_front()
-  {
+  void pop_front() {
     if (head == nullptr)
       return;
-    if (tail == head)
-    {
+    if (tail == head) {
       clear();
-    }
-    else
-    {
+    } else {
       node *temp = head;
       head = head->next;
       head->prev = nullptr;
@@ -305,38 +250,54 @@ public:
     std::swap(tail, other.tail);
     std::swap(count, other.count);
   }
-  void merge(list &other) {}
-  void splice(const_iterator pos, list &other) {}
+
+
+  void merge(list &other) {
+    iterator it = this->begin();
+    while (!other.empty()) {
+      T value = std::move(other.front());
+       while (it != this->end() && *it < value) { ++it; }
+      this->insert(it, std::move(value));
+      other.pop_front();
+    }
+  }
+
+  void splice(const_iterator pos, list &other) {
+     if (pos == begin()) {
+          other.tail->next = head;
+          head->prev = other.tail;
+          count += other.count;
+          head = other.head;
+          other = nullptr;    
+      }
+  }
   void reverse() {}
   void unique() {}
   void sort() {}
 
-  node *getHead()
-  {
-    return head;
-  }
+  node *getHead() { return head; }
 
 private:
-  void swap(node* a, node *b) {
-    if (a == b) return;
-    else if (a->next == b) {
-      
-    } 
+  // void swap(node* a, node *b) {
+  //   if (a == b) return;
+  //   else if (a->next == b) {
 
-    std::swap(a->next, b->next);
-    std::swap(a->prev, b->prev);
+  //   }
 
-    if (a->next)  a->next->prev = a;
-    if (b->next) b->next->prev = b;
-    if (a->prev) a->prev->next = a;
-    if (b->prev) b->prev.next = b;
+  //   std::swap(a->next, b->next);
+  //   std::swap(a->prev, b->prev);
 
-    if (head == a) head = b;
-    if (head == b) head = a;
-    if (tail == a) tail = b;
-    if (tail == b) tail = a;
+  //   if (a->next)  a->next->prev = a;
+  //   if (b->next) b->next->prev = b;
+  //   if (a->prev) a->prev->next = a;
+  //   if (b->prev) b->prev.next = b;
 
-  }
+  //   if (head == a) head = b;
+  //   if (head == b) head = a;
+  //   if (tail == a) tail = b;
+  //   if (tail == b) tail = a;
+
+  // }
 
   node *head;
   node *tail;
