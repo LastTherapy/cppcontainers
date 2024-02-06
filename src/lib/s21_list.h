@@ -1,25 +1,86 @@
 #ifndef LIST_H
 #define LIST_H
-#include <iostream>
+
 #include <iterator>
 
-template <typename T> class list {
-public:
-  using value_type = T;
-  using reference = T &;
-  using const_reference = const T &;
-  using size_type = size_t;
-  using pointer = T *;
+namespace s21 {
 
-  // структура узла внутри класса
-  typedef struct node {
+template <typename T> class list {
+
+  struct node {
     T data;
     node *next;
     node *prev;
     // Конструктор узла для удобства
     node(const T &d, node *nx = nullptr, node *pw = nullptr)
         : data(d), next(nx), prev(pw) {}
-  } node;
+  };
+
+  // --------I T E R A T O R------------------------------------------ //
+  class ListIterator {
+
+    using reference = T &;
+    using const_reference = const T &;
+    using pointer = T *;
+
+    friend ListIterator list<T>::insert(ListIterator pos,
+                                        const_reference value);
+    friend void list<T>::erase(ListIterator pos);
+    friend void list<T>::splice(const ListIterator pos, list &other);
+
+
+  public:
+    ListIterator(node *ptr, node *tl = nullptr) : current(ptr), tail(tl) {}
+
+    reference operator*() const { return current->data; }
+    pointer operator->() { return &(current->data); }
+
+    ListIterator &operator++() {
+      current = current->next;
+      return (*this);
+    }
+
+    ListIterator operator++(int) {
+      ListIterator temp = *this;
+      ++(*this);
+      return temp;
+    }
+
+    ListIterator &operator--() {
+      if (current == nullptr) {
+        current = tail;
+        tail = nullptr;
+      } else
+        current = current->prev;
+      return (*this);
+    }
+    ListIterator operator--(int) {
+      ListIterator temp = *this;
+      --(*this);
+      return temp;
+    }
+
+    bool operator==(const ListIterator &other) const {
+      return current == other.current;
+    }
+    bool operator!=(const ListIterator &other) const {
+      return current != other.current;
+    }
+
+  private:
+    node *current;
+    node *tail;
+  }; // end of ListIterator
+  // ------E N D---I T E R A T O R-------//
+
+  using value_type = T;
+  using reference = T &;
+  using const_reference = const T &;
+  using size_type = size_t;
+  using pointer = T *;
+  using node = struct node;
+  using iterator = ListIterator;
+  using const_iterator = const ListIterator;
 
 public:
   // инициализируем список из 0 элементов
@@ -57,95 +118,49 @@ public:
   }
 
   // copy constructor
-  list(const list &l) {
-    for (element : this) {
-      element
+  list(const list &l) : head(nullptr), tail(nullptr), count(0) {
+
+    node *current = l.head;
+    while (current != nullptr) {
+      this->push_back(current->data);
+      current = current->next;
     }
   }
   // move constructor
-  list(list &&l) {}
+  list(list &&l) : head(nullptr), tail(nullptr), count(0) {
+    head = l.head;
+    tail = l.tail;
+    count = l.count;
+
+    l.head = nullptr;
+    l.tail = nullptr;
+    l.count = 0;
+  }
+
+  list &operator=(const list &other) {
+    if (this != &other) {
+      list temp(other);
+      swap(temp);
+    }
+    return *this;
+  }
+
+  list &operator=(list &&other) {
+    if (this != &other) {
+      clear();
+      head = other.head;
+      tail = other.tail;
+      count = other.count;
+
+      other.head = nullptr;
+      other.tail = nullptr;
+      other.count = 0;
+    }
+    return *this;
+  }
 
   // destructor
-  ~list() {}
-
-  // --------I T E R A T O R------------------------------------------ //
-
-  class ListIterator {
-  public:
-    ListIterator(node *ptr, node *tl = nullptr) : current(ptr), tail(tl) {}
-
-    // сначала думал что нужно переопределить оператор копирования, но потом осталось, что не нужно
-
-    // ListIterator(const ListIterator &other) {
-    //   current = other.current;
-    //   tail = other.tail;
-    // }
-
-    // ListIterator(ListIterator &&i) : current(i.current), tail(i.tail) {}
-
-    // ~ListIterator() {}
-
-    // ListIterator &operator=(const ListIterator &other) {
-    //   if (this != &other) {
-    //     current = other.current;
-    //     tail = other.tail;
-    //   }
-    //   return *this;
-    // }
-
-    reference operator*() const { return current->data; }
-    pointer operator->() { return &(current->data); }
-
-    ListIterator &operator++() {
-      current = current->next;
-      return (*this);
-    }
-
-    ListIterator operator++(int) {
-      ListIterator temp = *this;
-      ++(*this);
-      return temp;
-    }
-
-    //--it
-    ListIterator &operator--() {
-      if (current == nullptr) {
-        current = tail;
-        tail = nullptr;
-      } else
-        current = current->prev;
-      return (*this);
-    }
-    ListIterator operator--(int) {
-      ListIterator temp = *this;
-      --(*this);
-      return temp;
-    }
-
-    bool operator==(const ListIterator &other) const {
-      return current == other.current;
-    }
-    bool operator!=(const ListIterator &other) const {
-      return current != other.current;
-    }
-
-    node *getCurrent() { return current; }
-
-    friend ListIterator list<T>::insert(ListIterator pos,
-                                        const_reference value);
-    friend void list<T>::erase(ListIterator pos);
-    friend void list<T>::splice(const ListIterator pos, list &other);
-    friend void list<T>::reverse();
-
-  private:
-    node *current;
-    // furry moment
-    node *tail;
-  }; // end of ListIterator
-  // ------E N D---I T E R A T O R-------//
-
-  using iterator = ListIterator;
-  using const_iterator = const ListIterator;
+  ~list() { clear(); }
 
   // List Element access
   const_reference front() { return head->data; }
@@ -156,12 +171,15 @@ public:
   iterator end() { return iterator(nullptr, tail); }
 
   // List Capacity
-  bool empty() { return count == 0 ? true : false; }
+  bool empty() { return count <= 0 ? true : false; }
   size_type size() { return count; }
   size_type max_size() { return count; }
 
   // List Modifiers
   void clear() {
+    if (head == nullptr) {
+      return; // Список уже пуст или не был инициализирован
+    }
     node *current = head;
     while (current != nullptr) {
       node *next = current->next;
@@ -314,13 +332,17 @@ public:
     other.tail = nullptr;
     other.count = 0;
   }
+
   void reverse() {
     if (this->count <= 1)
       return;
-    for (iterator it_left = this->begin(), it_right = --this->end();
-         it_left != it_right && it_left.current != it_right.current->next;
-         ++it_left, --it_right) {
-      std::swap(it_left.current->data, it_right.current->data);
+
+    iterator it_left = this->begin();
+    iterator it_right = --this->end();
+    for (size_type i = 0; i < count / 2; ++i) {
+      std::swap(*it_left, *it_right);
+      ++it_left;
+      ++it_right;
     }
   }
 
@@ -350,57 +372,36 @@ public:
     }
   }
 
-  // just buble for example ((
+  // n^2
   void sort() {
     if (empty() || head == tail)
       return;
 
     auto start = begin();
     auto end_marker = end();
-    while (start != end_marker)
-    {
+    while (start != end_marker) {
 
-    auto max = start;
-    auto v = max;
-    ++v;
-    while (v != end_marker) {
-      // std::cout << "v is " << *v << " , max is " << *max << std::endl;
-      if (*max > *v) {
-        // std::cout << "swaping " << *max << " wtidh " << *v << std::endl;
-        std::swap(*v, *max);
-        max = v;
-
-      } else {        
-        max = v;
-        // std::cout << "new max is " << *max;
-      }
+      auto max = start;
+      auto v = max;
       ++v;
-    }
-    --end_marker;
+      while (v != end_marker) {
+        if (*max > *v) {
+          std::swap(*v, *max);
+          max = v;
+        } else {
+          max = v;
+        }
+        ++v;
+      }
+      --end_marker;
     }
   }
-  // bool swapped;
-  // auto end_marker = end();
-  // do {
-  //     swapped = false;
-  //     auto current = begin();
-  //     auto next = current;
-  //     ++next;
-
-  //     while (next != end_marker) {
-  //         if (*current > *next) {
-  //             std::swap(*current, *next);
-  //             swapped = true;
-  //         }
-  //         ++current;
-  //         ++next;
-  //     }
-  //     end_marker = current; // Уменьшаем диапазон сортировки
-  // } while (swapped);
 
 private:
   node *head;
   node *tail;
   size_t count;
 };
-#endif
+
+} // namespace s21
+#endif // LIST_H

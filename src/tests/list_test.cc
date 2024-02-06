@@ -1,6 +1,6 @@
-#include "lib/list.h"
+#include "../lib/list.h"
 #include <gtest/gtest.h>
-
+using namespace s21;
 // Тест на проверку создания пустого списка
 TEST(ListTest, CreatesEmptyList) {
   list<int> my_list;
@@ -90,19 +90,6 @@ TEST(ListTest, InsertInMiddle) {
   EXPECT_EQ(3, *it); // Следующий элемент должен быть 3
 }
 
-// Тест на вставку с использованием range-based for loop
-// TEST(ListTest, InsertUsingRangeFor) {
-//     list<int> my_list{1, 2, 4, 5};
-//     auto it = my_list.begin();
-//     std::advance(it, 2); // Перемещаем итератор на позицию перед которой
-//     будет вставка it = my_list.insert(it, 3); // Вставляем 3 перед 4
-
-//     int expected[] = {1, 2, 3, 4, 5};
-//     int i = 0;
-//     for (int val : my_list) {
-//         EXPECT_EQ(expected[i++], val);
-//     }
-// }
 
 // Тест на вставку в пустой список
 TEST(ListTest, InsertInEmptyList) {
@@ -140,18 +127,6 @@ TEST(ListTest, EraseBegin) {
   ASSERT_EQ(myList.size(), 2);
   ASSERT_EQ(*myList.begin(), 2);
 }
-
-// TEST(ListTest, EraseEnd) {
-//     list<int> myList;
-//     myList.push_back(1);
-//     myList.push_back(2);
-//     myList.push_back(3);
-
-//     myList.erase(--myList.end());
-//     ASSERT_EQ(myList.size(), 2);
-//     ASSERT_NE(myList.end(), myList.find(3)); // Предполагая, что есть метод
-//     find
-// }
 
 TEST(ListTest, EraseMiddle) {
   list<int> myList;
@@ -400,9 +375,141 @@ TEST(ListSortTest, ListWithDuplicates) {
     }
 }
 
+TEST(ListConstructorTest, ParameterizedConstructor) {
+    size_t n = 5;
+    list<int> myList(n);
 
+    ASSERT_EQ(myList.size(), n); // Проверяем размер списка
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+    for (auto& item : myList) {
+        EXPECT_EQ(item, int()); // Проверяем, что все элементы инициализированы значением по умолчанию
+    }
 }
+
+TEST(ListConstructorTest, InitializerListConstructor) {
+    list<int> myList = {1, 2, 3, 4, 5};
+
+    ASSERT_EQ(myList.size(), 5); // Проверяем размер списка
+
+    std::vector<int> expected = {1, 2, 3, 4, 5};
+    int i = 0;
+    for (const auto& item : myList) {
+        EXPECT_EQ(item, expected[i++]); // Проверяем каждый элемент списка
+    }
+}
+
+TEST(ListConstructorTest, CopyConstructor) {
+    list<int> originalList = {1, 2, 3, 4, 5};
+    list<int> copiedList(originalList); // Использование конструктора копирования
+    // Проверяем размер скопированного списка
+    ASSERT_EQ(copiedList.size(), originalList.size());
+
+    // Проверяем, что элементы скопированного списка совпадают с элементами исходного
+    auto origIt = originalList.begin();
+    auto copyIt = copiedList.begin();
+    while (origIt != originalList.end() && copyIt != copiedList.end()) {
+        EXPECT_EQ(*origIt, *copyIt);
+        ++origIt;
+        ++copyIt;
+    }
+    // Изменяем исходный список и проверяем, что скопированный список не изменился
+    originalList.push_front(0);
+    ASSERT_NE(copiedList.size(), originalList.size());
+}
+
+// Тест на корректное копирование элементов списка.
+TEST(ListCopy, CopyElements) {
+    list<int> original;
+    original.push_back(1);
+    original.push_back(2);
+    original.push_back(3);
+
+    list<int> copy = original; // Использование оператора копирования.
+
+    // Проверяем, что элементы скопировались корректно.
+    ASSERT_EQ(copy.size(), original.size());
+    auto copyIt = copy.begin();
+    for (auto it = original.begin(); it != original.end(); ++it, ++copyIt) {
+        EXPECT_EQ(*it, *copyIt);
+    }
+}
+
+// Тест на независимость копии от оригинала.
+TEST(ListCopy, IndependenceOfCopy) {
+    list<int> original;
+    original.push_back(1);
+    original.push_back(2);
+
+    list<int> copy = original;
+    copy.push_back(3); // Изменяем копию.
+
+    // Проверяем, что изменения в копии не затронули оригинал.
+    ASSERT_EQ(original.size(), 2);
+    ASSERT_EQ(copy.size(), 3);
+}
+
+// Тест на копирование пустого списка.
+TEST(listCopy, CopyEmptylist) {
+    list<int> original;
+    list<int> copy = original;
+
+    // Проверяем, что копия пустого списка также пуста.
+    ASSERT_TRUE(copy.empty());
+}
+
+// Тест на перемещение содержимого одного списка в другой.
+TEST(ListMoveAssignment, MoveElements) {
+    list<int> source;
+    source.push_back(1);
+    source.push_back(2);
+    source.push_back(3);
+
+    list<int> destination;
+    destination = std::move(source); // Использование оператора присваивания перемещением.
+
+    // Проверяем, что source теперь пустой.
+    ASSERT_TRUE(source.empty());
+
+    // Проверяем, что элементы были перемещены в destination.
+    ASSERT_EQ(destination.size(), 3);
+    auto it = destination.begin();
+    EXPECT_EQ(*it, 1); ++it;
+    EXPECT_EQ(*it, 2); ++it;
+    EXPECT_EQ(*it, 3);
+}
+
+// Тест на самоприсваивание при присваивании перемещением.
+TEST(ListMoveAssignment, SelfAssignment) {
+    list<int> myList;
+    myList.push_back(1);
+    myList.push_back(2);
+
+    myList = std::move(myList); // Самоприсваивание перемещением.
+
+    // Проверяем, что список не изменился.
+    ASSERT_EQ(myList.size(), 2);
+    auto it = myList.begin();
+    EXPECT_EQ(*it, 1); ++it;
+    EXPECT_EQ(*it, 2);
+}
+
+// Тест на присваивание перемещением в пустой список.
+TEST(ListMoveAssignment, MoveToEmptyList) {
+    list<int> source;
+    source.push_back(1);
+    source.push_back(2);
+
+    list<int> destination;
+
+    destination = std::move(source); // Перемещение в пустой список.
+
+    // Проверяем, что source теперь пустой.
+    ASSERT_TRUE(source.empty());
+
+    // Проверяем, что элементы были перемещены в destination.
+    ASSERT_EQ(destination.size(), 2);
+    auto it = destination.begin();
+    EXPECT_EQ(*it, 1); ++it;
+    EXPECT_EQ(*it, 2);
+}
+

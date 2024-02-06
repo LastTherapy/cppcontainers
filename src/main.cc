@@ -1,17 +1,7 @@
 #include "lib/list.h"
-#include <iostream>
-int main() {
-  list<int> myList = {3, 1, 4, 3, 2};
+#include <gtest/gtest.h>
 
-  //  std::vector<int> expected = {1, 2, 3, 3, 4};
- std::cout << "{3, 1, 4, 3, 2}" << std::endl;
-
-  std::cout << *--myList.end() << std::endl;
-  std::cout << *myList.begin() << std::endl;
-
-  myList.sort();
-  int i = 0;
-  for (const auto &elem : myList) {
-    std::cout << elem << " ";
-  }
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

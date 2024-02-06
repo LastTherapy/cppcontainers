@@ -1,6 +1,6 @@
 LIBNAME := s21_matrix_oop.a
 FLAGS :=-std=c++17 #-Werror -Wextra -Wall
-SOURCES := $(wildcard lib/*cpp)
+SOURCES_TEST := $(wildcard tests/*cc) main.cc
 OBJECTS := $(SOURCES:.cpp=.o)
 LDFLAGS := -lgtest
 
@@ -22,7 +22,7 @@ all:
 #	ar rcs $(LIBNAME) $(OBJECTS)
 
 test: clean
-	g++  -g test.cpp $(FLAGS) $(LDFLAGS) -o  test
+	g++  -g $(SOURCES_TEST) $(FLAGS) $(LDFLAGS) -o  test
 	./test
 
 clean:
