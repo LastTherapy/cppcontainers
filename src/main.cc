@@ -1,4 +1,5 @@
-#include "lib/list.h"
+#include "s21_containers.h"
+#include "lib/s21_list.h"
 #include <gtest/gtest.h>
 
 int main(int argc, char **argv) {

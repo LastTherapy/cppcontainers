@@ -2,6 +2,7 @@
 #define LIST_H
 
 #include <iterator>
+#include <vector>
 
 namespace s21 {
 
@@ -395,6 +396,25 @@ public:
       }
       --end_marker;
     }
+  }
+
+  template <typename... Args>
+  iterator insert_many(const_iterator pos, Args&&... args) {
+        list temp({args...});
+        if (temp.empty()) return pos;
+        iterator final_pos = temp.begin();
+        splice(pos, temp);
+        return final_pos;
+  }
+
+  template <typename... Args>
+  void insert_many_back(Args&&... args) {
+      (push_back(std::forward<Args>(args)), ...);
+  }
+
+  template <typename... Args>
+  void insert_many_front(Args&&... args) {
+     (push_front(std::forward<Args>(args)), ...);   
   }
 
 private:
